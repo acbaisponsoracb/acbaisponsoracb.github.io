@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# آدرس نقشه سایت (در صورت داشتن sitemap)
+# Sitemap: https://acbai.sponsoracb.ir/sitemap.xml
