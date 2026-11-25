@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ACBAI — مینی‌اپ هوش مصنوعی</title>
+
+    <!-- فونت فارسی وزیرمتن و فونت قلمبه و گرد Rubik برای برند ACBAI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Rubik:wght@800;900&family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- بارگذاری Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'Plus Jakarta Sans', 'sans-serif'],
+                        brand: ['Rubik', 'Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================================
+           استایل‌های شیشه‌ای (Glassmorphism) و انیمیشن‌های ACBAI
+           پالت رنگی آبی نرم و منحنی + فاصله امن مینی‌اپ تلگرام
+           ========================================================= */
+        :root {
+            --bg-top: #0b247a;
+            --bg-mid-1: #1d4ed8;
+            --bg-mid-2: #4f86f7;
+            --bg-mid-3: #8ec5fc;
+            --bg-bottom: #dceeff;
+            --tg-top-clearance: calc(max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + 52px);
+            --nav-bottom-clearance: calc(120px + env(safe-area-inset-bottom, 0px));
+        }
+
+        @media (min-width: 640px) {
+            :root {
+                --tg-top-clearance: 36px;
+                --nav-bottom-clearance: 120px;
+            }
+        }
+
+        @media (max-height: 640px) {
+            :root {
+                --tg-top-clearance: calc(max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px)) + 24px);
+                --nav-bottom-clearance: calc(108px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            font-family: 'Vazirmatn', 'Plus Jakarta Sans', sans-serif;
+            background:
+                radial-gradient(125% 70% at 50% -8%, #102a8f 0%, rgba(29, 78, 216, 0) 65%),
+                radial-gradient(115% 65% at 12% 38%, rgba(96, 165, 250, 0.52) 0%, rgba(96, 165, 250, 0) 68%),
+                radial-gradient(120% 70% at 88% 82%, rgba(219, 238, 255, 0.85) 0%, rgba(147, 197, 253, 0) 70%),
+                linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid-1) 26%, var(--bg-mid-2) 56%, var(--bg-mid-3) 82%, var(--bg-bottom) 100%);
+            color: #ffffff;
+        }
+
+        /* فاصله امن بالای صفحه و پایین صفحه برای جلوگیری از تداخل با مینی‌اپ تلگرام و نوار ناوبری */
+        .tg-safe-top {
+            padding-top: var(--tg-top-clearance);
+        }
+
+        .nav-safe-bottom {
+            padding-bottom: var(--nav-bottom-clearance);
+        }
+
+        /* پس‌زمینه پویا و نرم کل صفحه با قوس‌های نوری لطیف */
+        .ambient-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(88px);
+            opacity: 0.48;
+            will-change: transform;
+            animation: floatOrb 16s ease-in-out infinite alternate;
+        }
+
+        .ambient-orb-1 {
+            width: 85vw;
+            height: 65vw;
+            max-width: 540px;
+            max-height: 420px;
+            top: -10%;
+            left: -18%;
+            background: radial-gradient(ellipse at center, rgba(125, 211, 252, 0.5) 0%, rgba(59, 130, 246, 0) 72%);
+        }
+
+        .ambient-orb-2 {
+            width: 90vw;
+            height: 70vw;
+            max-width: 580px;
+            max-height: 460px;
+            bottom: -14%;
+            right: -18%;
+            background: radial-gradient(ellipse at center, rgba(240, 249, 255, 0.65) 0%, rgba(147, 197, 253, 0) 72%);
+            animation-delay: -6s;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            100% { transform: translate3d(18px, 24px, 0) scale(1.08); }
+        }
+
+        /* غیرفعال‌سازی افکت‌های متحرک هنگام روشن کردن «خاموش کردن افکت» */
+        body.effects-off .ambient-orb,
+        body.effects-off .ai-halo-gradient,
+        body.effects-off .ai-halo-glow,
+        body.effects-off .acbai-brand-title,
+        body.effects-off .brand-sparkle,
+        body.effects-off .hero-star-badge::before {
+            animation: none !important;
+        }
+
+        /* قاب اصلی مینی‌اپ (شیشه‌ای با گرادیان قوسی و نرم) */
+        .app-shell {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background:
+                radial-gradient(130% 55% at 50% 0%, rgba(16, 44, 148, 0.34) 0%, rgba(37, 99, 235, 0.14) 55%, rgba(147, 197, 253, 0) 100%),
+                radial-gradient(120% 55% at 50% 100%, rgba(235, 246, 255, 0.56) 0%, rgba(186, 220, 255, 0.24) 55%, rgba(147, 197, 253, 0) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* نمایش قاب‌دار و مدرن در نمایشگرهای بزرگتر */
+        @media (min-width: 640px) {
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+            }
+            .app-shell {
+                width: 100%;
+                max-width: 440px;
+                height: min(92dvh, 840px);
+                border-radius: 42px;
+                border: 1.5px solid rgba(255, 255, 255, 0.32);
+                box-shadow:
+                    0 32px 80px rgba(3, 12, 68, 0.42),
+                    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        /* =========================================================
+           تایپوگرافی ویژه، بزرگ و قلمبه لوگوی ACBAI با افکت شاین کریستالی
+           ========================================================= */
+        .acbai-brand-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 100%;
+        }
+
+        .acbai-brand-title {
+            font-family: 'Rubik', 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2.85rem, 13.5vw, 3.9rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            padding-left: 0.1em;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.35);
+            background: linear-gradient(
+                115deg,
+                #e0f2fe 0%,
+                #ffffff 24%,
+                #93c5fd 46%,
+                #ffffff 62%,
+                #dbeeff 100%
+            );
+            background-size: 220% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 22px rgba(186, 230, 253, 0.52))
+                    drop-shadow(0 10px 26px rgba(12, 38, 120, 0.34));
+            animation: brandShimmer 6.5s ease-in-out infinite;
+        }
+
+        @keyframes brandShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .brand-sparkle {
+            position: absolute;
+            top: -10px;
+            right: -18px;
+            width: 24px;
+            height: 24px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95));
+            animation: sparkleTwinkle 3.4s ease-in-out infinite;
+        }
+
+        @keyframes sparkleTwinkle {
+            0%, 100% { transform: scale(0.85) rotate(0deg); opacity: 0.72; }
+            50% { transform: scale(1.15) rotate(22deg); opacity: 1; }
+        }
+
+        /* متن کوچک و درخشان زیر نوار ناوبری */
+        .powered-by-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 9.5px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            color: rgba(255, 255, 255, 0.92);
+            text-shadow:
+                0 0 8px rgba(255, 255, 255, 0.72),
+                0 0 16px rgba(186, 230, 253, 0.55);
+        }
+
+        /* =========================================================
+           نوار ناوبری کپسولی شیشه‌ای (بزرگ‌تر، قلمبه و کاملاً متقارن)
+           ========================================================= */
+        .nav-pill-container {
+            background: linear-gradient(
+                145deg,
+                rgba(240, 248, 255, 0.64) 0%,
+                rgba(208, 229, 255, 0.44) 52%,
+                rgba(236, 246, 255, 0.66) 100%
+            );
+            backdrop-filter: blur(28px) saturate(165%);
+            -webkit-backdrop-filter: blur(28px) saturate(165%);
+            border: 1.75px solid rgba(255, 255, 255, 0.72);
+            box-shadow:
+                0 16px 38px rgba(10, 35, 118, 0.22),
+                inset 0 2px 3px rgba(255, 255, 255, 0.9),
+                inset 0 -3px 8px rgba(37, 99, 235, 0.12);
+        }
+
+        /* دکمه مرکزی هوش مصنوعی (قلمبه و پرحجم با هاله نرم و ریسپانسیو) */
+        .ai-center-btn {
+            position: relative;
+            width: clamp(94px, 28vw, 112px);
+            height: 56px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            background: transparent;
+            isolation: isolate;
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .ai-center-btn:active {
+            transform: scale(0.93);
+        }
+
+        /* لایه هاله گرادیان متحرک نرم، قوسی و مخملی */
+        .ai-halo-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            overflow: hidden;
+            background: radial-gradient(120% 110% at 50% 35%, #60a5fa 0%, #3b6cf6 58%, #4f5ef7 100%);
+            box-shadow:
+                0 6px 22px rgba(59, 114, 246, 0.38),
+                0 0 16px rgba(125, 211, 252, 0.42);
+            z-index: -1;
+        }
+
+        .ai-halo-gradient {
+            position: absolute;
+            inset: -50%;
+            background: conic-gradient(
+                from 0deg,
+                #4f7df9,
+                #7dd3fc,
+                #6366f1,
+                #93c5fd,
+                #5b84fa,
+                #4f7df9
+            );
+            filter: blur(14px);
+            opacity: 0.88;
+            will-change: transform;
+            animation: haloRotate 8.5s linear infinite;
+        }
+
+        .ai-halo-glow {
+            position: absolute;
+            inset: -6px;
+            border-radius: 9999px;
+            background: radial-gradient(ellipse at 50% 45%, rgba(147, 197, 253, 0.65), rgba(99, 132, 248, 0.26) 60%, transparent 80%);
+            filter: blur(10px);
+            z-index: -2;
+            will-change: transform, opacity;
+            animation: haloBreathe 4.2s ease-in-out infinite;
+        }
+
+        .ai-halo-sheen {
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            background:
+                radial-gradient(110% 75% at 50% 6%, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 64%),
+                radial-gradient(100% 65% at 50% 100%, rgba(186, 230, 253, 0.35) 0%, rgba(255, 255, 255, 0) 60%);
+            box-shadow: inset 0 0 12px rgba(219, 238, 255, 0.56);
+            pointer-events: none;
+        }
+
+        @keyframes haloRotate {
+            0% { transform: rotate(0deg) scale(1.05); }
+            50% { transform: rotate(180deg) scale(1.14); }
+            100% { transform: rotate(360deg) scale(1.05); }
+        }
+
+        @keyframes haloBreathe {
+            0%, 100% { opacity: 0.65; transform: scale(0.96); }
+            50% { opacity: 1; transform: scale(1.07); }
+        }
+
+        /* آیکون‌های نوار ناوبری: کاملاً هم‌تراز، قلمبه و در حالت انتخاب فقط آبی */
+        .nav-item-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 9999px;
+            color: rgba(15, 30, 64, 0.46);
+            transition: color 0.25s ease, transform 0.2s ease;
+        }
+
+        .nav-item-btn.is-active {
+            color: #2563eb;
+        }
+
+        .nav-item-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* =========================================================
+           کارت‌ها و المان‌های شیشه‌ای سراسری
+           ========================================================= */
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.22) 0%, rgba(224, 240, 255, 0.12) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            box-shadow: 0 10px 30px rgba(7, 25, 92, 0.14);
+        }
+
+        .glass-card-light {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.72) 0%, rgba(235, 245, 255, 0.54) 100%);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 10px 28px rgba(10, 35, 118, 0.12);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.24);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            box-shadow: 0 8px 24px rgba(8, 28, 102, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+        }
+
+        .glass-input:focus-within {
+            background: rgba(255, 255, 255, 0.34);
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.22), 0 0 0 3px rgba(147, 197, 253, 0.25);
+        }
+
+        /* =========================================================
+           انیمیشن پرواز ستاره به وسط صفحه و ظاهر شدن متن کنار آن
+           ========================================================= */
+        .flying-star-overlay {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform, left, top, opacity;
+        }
+
+        .star-ripple {
+            position: fixed;
+            z-index: 90;
+            border-radius: 9999px;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(125, 211, 252, 0.72) 0%, rgba(59, 130, 246, 0.32) 45%, transparent 70%);
+            animation: rippleExpand 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes rippleExpand {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.95; }
+            100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; }
+        }
+
+        .hero-star-badge {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #3b6cf6 0%, #5b72fa 52%, #60a5fa 100%);
+            box-shadow:
+                0 0 26px rgba(125, 211, 252, 0.62),
+                0 10px 24px rgba(37, 99, 235, 0.38),
+                inset 0 1px 3px rgba(255, 255, 255, 0.78);
+        }
+
+        .hero-star-badge::before {
+            content: "";
+            position: absolute;
+            inset: -8px;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(147, 197, 253, 0.55) 0%, rgba(99, 102, 241, 0.24) 55%, transparent 75%);
+            filter: blur(8px);
+            z-index: -1;
+            animation: haloBreathe 3.4s ease-in-out infinite;
+        }
+
+        .prompt-reveal-text {
+            opacity: 0;
+            transform: translateX(18px) scale(0.96);
+            filter: blur(6px);
+            transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .prompt-reveal-text.is-visible {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            filter: blur(0);
+        }
+
+        /* =========================================================
+           انیمیشن ورود نرم صفحات (View Panels)
+           ========================================================= */
+        .view-panel {
+            position: absolute;
+            inset: 0;
+            min-height: 0;
+            width: 100%;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(14px) scale(0.985);
+            transition: opacity 0.36s cubic-bezier(0.22, 1, 0.36, 1), transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .view-panel.is-active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        /* =========================================================
+           حباب‌های چت، اسکرول‌بار و ذرات درخشان
+           ========================================================= */
+        .msg-user {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 60%, #60a5fa 100%);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 8px 22px rgba(29, 78, 216, 0.28);
+        }
+
+        .msg-ai {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.86) 0%, rgba(235, 245, 255, 0.72) 100%);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            color: #0f172a;
+            box-shadow: 0 8px 24px rgba(10, 35, 118, 0.12);
+        }
+
+        .typing-spark {
+            animation: sparkPulse 1.1s ease-in-out infinite;
+        }
+        .typing-spark:nth-child(2) { animation-delay: 0.2s; }
+        .typing-spark:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes sparkPulse {
+            0%, 100% { transform: scale(0.75); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .spark-particle {
+            position: fixed;
+            z-index: 95;
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            pointer-events: none;
+            background: radial-gradient(circle, #ffffff 0%, #bae6fd 65%, transparent 100%);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+            animation: particleBurst 0.82s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes particleBurst {
+            0% {
+                transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translate3d(var(--tx), var(--ty), 0) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* اسکرول‌بار مخفی و تمیز */
+        .custom-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .custom-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- لایه نورهای شناور پس‌زمینه -->
+    <div class="ambient-canvas" aria-hidden="true">
+        <div class="ambient-orb ambient-orb-1"></div>
+        <div class="ambient-orb ambient-orb-2"></div>
+    </div>
+
+    <!-- بدنه اصلی مینی‌اپ ACBAI -->
+    <main class="app-shell" id="appShell">
+
+        <!-- ناحیه نمایش صفحات (Welcome, Chat, Search, Account) -->
+        <div class="relative flex-1 min-h-0 w-full overflow-hidden">
+
+            <!-- ===================================================
+                 ۱. صفحه خوش‌آمدگویی اولیه (مینیمال با لوگوی ویژه ACBAI)
+                 =================================================== -->
+            <section id="view-welcome" class="view-panel is-active tg-safe-top nav-safe-bottom items-center justify-center px-6 text-center">
+                <div class="relative flex flex-col items-center justify-center my-auto w-full max-w-sm">
+                    <!-- هاله لطیف پشت لوگو -->
+                    <div class="absolute w-64 sm:w-72 h-40 sm:h-44 rounded-full bg-sky-200/25 blur-3xl pointer-events-none"></div>
+
+                    <div class="acbai-brand-wrap">
+                        <h1 class="acbai-brand-title leading-none select-none" dir="ltr">
+                            ACBAI
+                        </h1>
+                        <svg class="brand-sparkle" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z" fill="white"/>
+                        </svg>
+                    </div>
+
+                    <p class="mt-4 text-xs sm:text-sm text-blue-50/90 font-normal tracking-tight select-none">
+                        برای شروع گفتگو روی ستاره پایین بزنید
+                    </p>
+                </div>
+            </section>
+
+            <!-- ===================================================
+                 ۲. صفحه چت با هوش مصنوعی (بدون هدر، منظم و ریسپانسیو)
+                 =================================================== -->
+            <section id="view-chat" class="view-panel tg-safe-top nav-safe-bottom">
+                <div class="relative flex-1 min-h-0 w-full max-w-md mx-auto overflow-hidden flex flex-col">
+
+                    <!-- حالت شروع چت (ستاره بلندشده در وسط صفحه + متن کنار آن) -->
+                    <div id="chatEmptyStage" class="flex-1 min-h-0 overflow-y-auto custom-scroll flex flex-col items-center justify-center px-5 py-4 text-center transition-all duration-500">
+                        <div class="flex items-center justify-center gap-3 sm:gap-3.5 max-w-full">
+                            <!-- مقصد نهایی ستاره پروازکننده -->
+                            <div id="heroStarTarget" class="hero-star-badge opacity-0 transition-opacity duration-300">
+                                <svg class="w-7 h-7 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.85)]" viewBox="0 0 36 36" fill="none">
+                                    <path d="M16 4C16 11.2 11.2 16 4 16C11.2 16 16 20.8 16 28C16 20.8 20.8 16 28 16C20.8 16 16 11.2 16 4Z" fill="white"/>
+                                    <path d="M27.5 6C27.5 8.3 25.8 10 23.5 10C25.8 10 27.5 11.7 27.5 14C27.5 11.7 29.2 10 31.5 10C29.2 10 27.5 8.3 27.5 6Z" fill="white"/>
+                                </svg>
+                            </div>
+
+                            <!-- متنی که با انیمیشن از کنار ستاره ظاهر می‌شود -->
+                            <div id="heroPromptText" class="prompt-reveal-text text-right min-w-0">
+                                <p class="text-[15px] sm:text-lg font-bold text-white drop-shadow-sm leading-snug">
+                                    برای شروع گفتگو یه چیزی بنویسید
+                                </p>
+                                <p class="text-xs text-blue-100/80 mt-0.5 font-normal">
+                                    از ACBAI هر سوالی دارید بپرسید
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- پیشنهادهای ساده و دوستانه برای شروع سریع -->
+                        <div id="quickPrompts" class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 max-w-sm opacity-0 translate-y-3 transition-all duration-500 delay-150">
+                            <button type="button" onclick="sendQuickPrompt('یه فیلم قشنگ و حال‌خوب‌کن برای امشب پیشنهاد بده')" class="glass-card hover:bg-white/25 active:scale-95 transition-all rounded-full px-3.5 py-2 text-xs text-blue-50 cursor-pointer">
+                                🎬 پیشنهاد فیلم
+                            </button>
+                            <button type="button" onclick="sendQuickPrompt('یه متن کوتاه و صمیمی برای تبریک تولد دوستم بنویس')" class="glass-card hover:bg-white/25 active:scale-95 transition-all rounded-full px-3.5 py-2 text-xs text-blue-50 cursor-pointer">
+                                🎂 پیام تبریک دوستانه
+                            </button>
+                            <button type="button" onclick="sendQuickPrompt('سه تا راه ساده برای اینکه روزم پرانرژی‌تر باشه بگو')" class="glass-card hover:bg-white/25 active:scale-95 transition-all rounded-full px-3.5 py-2 text-xs text-blue-50 cursor-pointer">
+                                ✨ انرژی بیشتر روزانه
+                            </button>
+                            <button type="button" onclick="sendQuickPrompt('یه غذای ساده و خوشمزه برای شام پیشنهاد بده')" class="glass-card hover:bg-white/25 active:scale-95 transition-all rounded-full px-3.5 py-2 text-xs text-blue-50 cursor-pointer">
+                                🍳 ایده شام ساده
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- لیست پیام‌های چت -->
+                    <div id="chatMessagesList" class="hidden flex-1 min-h-0 overflow-y-auto custom-scroll px-4 pt-2 pb-3 space-y-3.5">
+                        <!-- پیام‌ها به صورت داینامیک اینجا رندر می‌شوند -->
+                    </div>
+
+                    <!-- کادر ورودی پیام + دکمه گفتگوی جدید کنار ورودی -->
+                    <div class="px-4 pt-2 pb-1 shrink-0 flex items-center gap-2">
+                        <button
+                            type="button"
+                            onclick="startNewChatWithAnimation()"
+                            class="glass-input w-11 h-11 rounded-full flex items-center justify-center text-white hover:bg-white/30 active:scale-90 transition-all shrink-0 cursor-pointer"
+                            title="گفتگوی جدید"
+                            aria-label="گفتگوی جدید"
+                        >
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                        </button>
+
+                        <form id="chatForm" onsubmit="handleChatSubmit(event)" class="glass-input flex-1 min-w-0 rounded-full p-1.5 pr-4 flex items-center gap-2 transition-all">
+                            <input
+                                id="chatInput"
+                                type="text"
+                                autocomplete="off"
+                                placeholder="پیام خود را بنویسید..."
+                                class="flex-1 bg-transparent text-sm text-white placeholder-blue-100/75 outline-none py-1.5 min-w-0"
+                            />
+                            <button
+                                id="sendBtn"
+                                type="submit"
+                                class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 via-blue-500 to-sky-400 text-white flex items-center justify-center shadow-[0_6px_18px_rgba(59,130,246,0.45)] hover:brightness-110 active:scale-90 transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                                aria-label="ارسال پیام"
+                            >
+                                <!-- آیکون فلش قلمبه و لبه‌گرد با نوک به سمت راست -->
+                                <svg class="w-5 h-5 translate-x-[1px]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M4.6 3.55C3.78 3.12 2.86 3.92 3.16 4.8L5.26 10.65C5.38 10.98 5.68 11.22 6.03 11.27L12.6 12L6.03 12.73C5.68 12.78 5.38 13.02 5.26 13.35L3.16 19.2C2.86 20.08 3.78 20.88 4.6 20.45L20.55 13.15C21.45 12.74 21.45 11.26 20.55 10.85L4.6 3.55Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================================================
+                 ۳. صفحه جستجو بین چت‌ها (بدون هدر، منظم و ریسپانسیو)
+                 =================================================== -->
+            <section id="view-search" class="view-panel tg-safe-top nav-safe-bottom px-4 sm:px-5">
+                <div class="w-full max-w-md mx-auto flex flex-col flex-1 min-h-0">
+                    <!-- کادر جستجوی شیشه‌ای -->
+                    <div class="glass-input rounded-full px-4 py-2.5 flex items-center gap-2.5 mb-3 shrink-0">
+                        <svg class="w-5 h-5 text-blue-100/85 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7.5"/>
+                            <path d="M20 20l-3.8-3.8"/>
+                        </svg>
+                        <input
+                            id="searchChatInput"
+                            type="text"
+                            oninput="renderSearchResults()"
+                            placeholder="جستجو بین گفتگوها..."
+                            class="flex-1 bg-transparent text-sm text-white placeholder-blue-100/75 outline-none min-w-0"
+                        />
+                        <span id="searchCountBadge" class="text-[11px] font-medium text-blue-100/85 shrink-0 px-1">
+                            ۰ گفتگو
+                        </span>
+                        <button
+                            id="clearSearchBtn"
+                            type="button"
+                            onclick="clearSearchInput()"
+                            class="hidden p-1 rounded-full hover:bg-white/20 text-blue-100 transition-colors cursor-pointer"
+                            aria-label="پاک کردن جستجو"
+                        >
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- فیلترهای دسته‌بندی چت‌ها -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-2 shrink-0 custom-scroll" id="searchFilters">
+                        <button type="button" data-filter="all" onclick="setSearchFilter('all')" class="filter-chip is-active px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer bg-white text-blue-950 shadow-sm">
+                            همه
+                        </button>
+                        <button type="button" data-filter="روزمره" onclick="setSearchFilter('روزمره')" class="filter-chip px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer glass-card text-blue-50 hover:bg-white/25">
+                            روزمره
+                        </button>
+                        <button type="button" data-filter="نوشتار" onclick="setSearchFilter('نوشتار')" class="filter-chip px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer glass-card text-blue-50 hover:bg-white/25">
+                            نوشتار
+                        </button>
+                        <button type="button" data-filter="ایده" onclick="setSearchFilter('ایده')" class="filter-chip px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer glass-card text-blue-50 hover:bg-white/25">
+                            ایده
+                        </button>
+                        <button type="button" data-filter="عمومی" onclick="setSearchFilter('عمومی')" class="filter-chip px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer glass-card text-blue-50 hover:bg-white/25">
+                            عمومی
+                        </button>
+                    </div>
+
+                    <!-- لیست نتایج گفتگوها -->
+                    <div id="searchResultsList" class="flex-1 min-h-0 overflow-y-auto custom-scroll space-y-3 pb-3">
+                        <!-- کارت‌های گفتگو اینجا رندر می‌شوند -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================================================
+                 ۴. صفحه حساب کاربری (کادربندی استاندارد و ریسپانسیو)
+                 =================================================== -->
+            <section id="view-account" class="view-panel tg-safe-top nav-safe-bottom px-4 sm:px-5 overflow-y-auto custom-scroll">
+                <div class="w-full max-w-md mx-auto flex flex-col gap-4 pb-2 shrink-0">
+                    <!-- کارت پروفایل شیشه‌ای -->
+                    <div class="glass-card-light rounded-3xl p-4 sm:p-5 text-slate-900">
+                        <div class="flex items-center gap-3.5 sm:gap-4">
+                            <div class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 flex items-center justify-center text-white shadow-[0_8px_24px_rgba(37,99,235,0.34)] shrink-0">
+                                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.87 0-7 2.02-7 4.5V20c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-1.5c0-2.48-3.13-4.5-7-4.5z"/>
+                                </svg>
+                                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white"></span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h3 id="profileDisplayName" class="text-base font-bold text-slate-900 truncate">کاربر ACBAI</h3>
+                                    <span class="px-2 py-0.5 rounded-full bg-blue-600/15 text-blue-700 text-[9.5px] font-bold font-brand shrink-0">PRO</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-0.5 truncate" dir="ltr">@acbai_member</p>
+                                <button
+                                    type="button"
+                                    onclick="openEditNameModal()"
+                                    class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+                                >
+                                    <span>ویرایش نام نمایشی</span>
+                                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- آمار سریع کاربر -->
+                        <div class="grid grid-cols-3 gap-2 sm:gap-2.5 mt-4 sm:mt-5 pt-4 border-t border-slate-900/10 text-center">
+                            <div class="rounded-2xl bg-white/60 py-2.5 px-1.5">
+                                <div id="statChatsCount" class="text-lg font-extrabold text-blue-900">۰</div>
+                                <div class="text-[11px] text-slate-600 mt-0.5">گفتگوها</div>
+                            </div>
+                            <div class="rounded-2xl bg-white/60 py-2.5 px-1.5">
+                                <div id="statMessagesCount" class="text-lg font-extrabold text-indigo-800">۰</div>
+                                <div class="text-[11px] text-slate-600 mt-0.5">پیام‌ها</div>
+                            </div>
+                            <div class="rounded-2xl bg-white/60 py-2.5 px-1.5">
+                                <div class="text-base font-extrabold text-sky-700 font-brand pt-0.5">V3</div>
+                                <div class="text-[11px] text-slate-600 mt-0.5">هسته ACBAI</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تنظیمات شیشه‌ای -->
+                    <div class="glass-card rounded-3xl p-4 space-y-3.5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-sm font-semibold text-white">خاموش کردن افکت</div>
+                                <div class="text-[11px] text-blue-100/75">غیرفعال کردن افکت‌های متحرک برنامه</div>
+                            </div>
+                            <button
+                                type="button"
+                                id="toggleDisableEffects"
+                                onclick="toggleSetting('disableEffects')"
+                                class="w-12 h-7 rounded-full p-1 transition-colors duration-300 bg-white/25 flex items-center shrink-0 cursor-pointer"
+                                aria-pressed="false"
+                            >
+                                <span class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 translate-x-0"></span>
+                            </button>
+                        </div>
+
+                        <div class="h-px bg-white/15"></div>
+
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-sm font-semibold text-white">پاسخ‌های دوستانه‌تر</div>
+                                <div class="text-[11px] text-blue-100/75">لحن صمیمی‌تر و ساده‌تر در گفتگوها</div>
+                            </div>
+                            <button
+                                type="button"
+                                id="toggleCreativeMode"
+                                onclick="toggleSetting('creativeMode')"
+                                class="w-12 h-7 rounded-full p-1 transition-colors duration-300 bg-sky-400 flex items-center shrink-0 cursor-pointer"
+                                aria-pressed="true"
+                            >
+                                <span class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 -translate-x-5"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- دکمه‌های عملیاتی حساب کاربری -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            type="button"
+                            onclick="triggerStarToChat()"
+                            class="glass-card-light hover:brightness-105 active:scale-95 transition-all rounded-2xl py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-blue-950 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
+                        >
+                            <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"/>
+                            </svg>
+                            <span class="truncate">شروع چت جدید</span>
+                        </button>
+                        <button
+                            type="button"
+                            onclick="openClearHistoryModal()"
+                            class="glass-card hover:bg-rose-500/30 active:scale-95 transition-all rounded-2xl py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
+                        >
+                            <svg class="w-4 h-4 text-rose-200 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+                            </svg>
+                            <span class="truncate">پاکسازی سابقه</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- =======================================================
+             نوار ناوبری پایین کپسولی (بزرگ‌تر، قلمبه‌تر و ریسپانسیو) + امضای درخشان
+             ======================================================= -->
+        <nav class="absolute bottom-2.5 inset-x-0 px-4 z-30 flex flex-col items-center gap-1.5 pointer-events-none" style="padding-bottom: env(safe-area-inset-bottom, 0px);" aria-label="ناوبری اصلی">
+            <div class="nav-pill-container pointer-events-auto w-full max-w-[336px] h-[74px] sm:h-[76px] rounded-full px-3 sm:px-3.5 grid grid-cols-[1fr_auto_1fr] items-center">
+
+                <!-- ۱. دکمه حساب کاربری -->
+                <button
+                    id="nav-account"
+                    type="button"
+                    onclick="switchView('account')"
+                    class="nav-item-btn justify-self-center cursor-pointer"
+                    aria-label="حساب کاربری"
+                >
+                    <svg class="w-[26px] h-[26px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M5 20a7 7 0 0 1 14 0"/>
+                    </svg>
+                </button>
+
+                <!-- ۲. دکمه مرکزی هوش مصنوعی با هاله گرادیان متحرک نرم و سبک -->
+                <button
+                    id="nav-ai"
+                    type="button"
+                    onclick="triggerStarToChat()"
+                    class="ai-center-btn justify-self-center"
+                    aria-label="شروع گفتگو با هوش مصنوعی ACBAI"
+                >
+                    <span class="ai-halo-glow" aria-hidden="true"></span>
+                    <span class="ai-halo-bg" aria-hidden="true">
+                        <span class="ai-halo-gradient"></span>
+                        <span class="ai-halo-sheen"></span>
+                    </span>
+                    <!-- آیکون ستاره ۴ پر + ستاره کوچک کنارش -->
+                    <span id="navStarIconWrap" class="relative z-10 flex items-center justify-center transition-opacity duration-200">
+                        <svg class="w-8 h-8 text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.7)]" viewBox="0 0 36 36" fill="none">
+                            <path d="M16 4C16 11.2 11.2 16 4 16C11.2 16 16 20.8 16 28C16 20.8 20.8 16 28 16C20.8 16 16 11.2 16 4Z" fill="white"/>
+                            <path d="M27.5 6C27.5 8.3 25.8 10 23.5 10C25.8 10 27.5 11.7 27.5 14C27.5 11.7 29.2 10 31.5 10C29.2 10 27.5 8.3 27.5 6Z" fill="white"/>
+                        </svg>
+                    </span>
+                </button>
+
+                <!-- ۳. دکمه جستجو بین چت‌ها -->
+                <button
+                    id="nav-search"
+                    type="button"
+                    onclick="switchView('search')"
+                    class="nav-item-btn justify-self-center cursor-pointer"
+                    aria-label="جستجو بین گفتگوها"
+                >
+                    <svg class="w-[26px] h-[26px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="M20 20l-3.8-3.8"/>
+                    </svg>
+                </button>
+
+            </div>
+
+            <!-- متن کوچک و درخشان زیر نوار ناوبری -->
+            <p class="powered-by-label select-none" dir="ltr">
+                Powered By SPONSORACB
+            </p>
+        </nav>
+
+        <!-- پیام اعلان شیشه‌ای (Toast) جایگزین alert با فاصله امن از بالا -->
+        <div id="toastContainer" style="top: calc(var(--tg-top-clearance) - 20px);" class="fixed left-1/2 -translate-x-1/2 z-[120] pointer-events-none opacity-0 -translate-y-3 transition-all duration-300">
+            <div id="toastMessage" class="glass-card-light text-slate-900 rounded-full px-5 py-2.5 text-xs font-bold shadow-xl whitespace-nowrap">
+                انجام شد
+            </div>
+        </div>
+
+        <!-- مودال شیشه‌ای برای ویرایش نام یا تایید پاکسازی -->
+        <div id="customModal" onclick="if (event.target === this) closeModal()" class="fixed inset-0 z-[110] hidden items-center justify-center p-5 bg-slate-950/45 backdrop-blur-md">
+            <div class="glass-card-light w-full max-w-[320px] rounded-3xl p-5 text-slate-900 shadow-2xl transform transition-all">
+                <h3 id="modalTitle" class="text-base font-bold text-slate-900">عنوان</h3>
+                <p id="modalDesc" class="text-xs text-slate-600 mt-1.5 leading-relaxed"></p>
+                <div id="modalInputWrap" class="hidden mt-3.5">
+                    <input id="modalInput" type="text" class="w-full rounded-2xl bg-white/80 border border-blue-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500" />
+                </div>
+                <div class="flex items-center justify-end gap-2 mt-5">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 hover:bg-slate-200/70 transition-colors cursor-pointer">
+                        انصراف
+                    </button>
+                    <button id="modalConfirmBtn" type="button" class="px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md hover:brightness-110 transition-all cursor-pointer">
+                        تایید
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===========================================================
+         اسکریپت منطق برنامه، انیمیشن ستاره، جستجو و اتصال به Gemini
+         =========================================================== -->
+    <script>
+        /* -----------------------------------------------------------
+           تنظیمات API هوش مصنوعی (Gemini 3 Flash Preview)
+           ----------------------------------------------------------- */
+        const apiKey = "";
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        /* -----------------------------------------------------------
+           گفتگوهای نمونه ساده و دوستانه برای سابقه و جستجو
+           ----------------------------------------------------------- */
+        const DEFAULT_CHATS = [
+            {
+                id: 'chat-demo-1',
+                title: 'پیشنهاد فیلم برای آخر هفته',
+                category: 'روزمره',
+                updatedAt: 'امروز، ۱۸:۱۵',
+                messages: [
+                    { role: 'user', text: 'یه فیلم قشنگ و حال‌خوب‌کن برای امشب معرفی کن' },
+                    { role: 'model', text: 'حتماً! فیلم «زندگی پنهان والتر میتی» یه انتخاب عالی و پر از حس خوب و انگیزه‌ست. اگر سبک دیگه‌ای دوست داری بگو تا بیشتر معرفی کنم.' }
+                ]
+            },
+            {
+                id: 'chat-demo-2',
+                title: 'پیام تبریک تولد صمیمی',
+                category: 'نوشتار',
+                updatedAt: 'دیروز',
+                messages: [
+                    { role: 'user', text: 'یه متن کوتاه و دوستانه برای تبریک تولد رفیقم بنویس' },
+                    { role: 'model', text: 'تولدت مبارک رفیق جان! امیدوارم امسال برات پر از خنده، آرامش و اتفاق‌های قشنگ باشه.' }
+                ]
+            },
+            {
+                id: 'chat-demo-3',
+                title: 'درست کردن قهوه خوش‌طعم در خانه',
+                category: 'ایده',
+                updatedAt: '۲ روز پیش',
+                messages: [
+                    { role: 'user', text: 'چطور تو خونه یه قهوه خوش‌عطر درست کنم؟' },
+                    { role: 'model', text: 'از قهوه تازه آسیاب‌شده و آب داغ (نه در حال جوش) استفاده کن و حدود ۳ دقیقه صبر کن تا خوب دم بکشه. عطر و طعمش فوق‌العاده می‌شه!' }
+                ]
+            }
+        ];
+
+        /* -----------------------------------------------------------
+           وضعیت مرکزی برنامه (Application State)
+           ----------------------------------------------------------- */
+        const state = {
+            currentView: 'welcome',
+            chats: [],
+            activeChatId: null,
+            searchFilter: 'all',
+            isGenerating: false,
+            isStarAnimating: false,
+            profileName: 'کاربر ACBAI',
+            settings: {
+                disableEffects: false,
+                creativeMode: true
+            }
+        };
+
+        /* -----------------------------------------------------------
+           بارگذاری و ذخیره امن داده‌ها در LocalStorage
+           ----------------------------------------------------------- */
+        function loadState() {
+            try {
+                const savedChats = localStorage.getItem('acbai_chats_v2');
+                state.chats = savedChats ? JSON.parse(savedChats) : JSON.parse(JSON.stringify(DEFAULT_CHATS));
+
+                const savedName = localStorage.getItem('acbai_profile_name');
+                if (savedName) state.profileName = savedName;
+
+                const savedSettings = localStorage.getItem('acbai_settings_v2');
+                if (savedSettings) {
+                    state.settings = { ...state.settings, ...JSON.parse(savedSettings) };
+                }
+            } catch (e) {
+                state.chats = JSON.parse(JSON.stringify(DEFAULT_CHATS));
+            }
+            applyEffectsPreference();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('acbai_chats_v2', JSON.stringify(state.chats));
+                localStorage.setItem('acbai_profile_name', state.profileName);
+                localStorage.setItem('acbai_settings_v2', JSON.stringify(state.settings));
+            } catch (e) {
+                // در صورت محدودیت حافظه مرورگر بدون خطا ادامه می‌دهد
+            }
+        }
+
+        function applyEffectsPreference() {
+            document.body.classList.toggle('effects-off', Boolean(state.settings.disableEffects));
+        }
+
+        /* -----------------------------------------------------------
+           جابجایی بین صفحات (View Router)
+           ----------------------------------------------------------- */
+        function switchView(viewName) {
+            state.currentView = viewName;
+
+            const views = ['welcome', 'chat', 'search', 'account'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) {
+                    el.classList.toggle('is-active', v === viewName);
+                }
+            });
+
+            // در حالت انتخاب فقط رنگ آیکون آبی شود
+            document.getElementById('nav-account').classList.toggle('is-active', viewName === 'account');
+            document.getElementById('nav-search').classList.toggle('is-active', viewName === 'search');
+
+            if (viewName === 'search') {
+                renderSearchResults();
+            } else if (viewName === 'account') {
+                updateAccountStats();
+            } else if (viewName === 'chat') {
+                renderActiveChat();
+            }
+        }
+
+        /* -----------------------------------------------------------
+           انیمیشن اختصاصی: بلند شدن ستاره از نوار پایین به مرکز صفحه
+           و ظاهر شدن عبارت «برای شروع گفتگو یه چیزی بنویسید» در کنار آن
+           ----------------------------------------------------------- */
+        function triggerStarToChat() {
+            if (state.isStarAnimating) return;
+
+            const activeChat = state.chats.find(c => c.id === state.activeChatId);
+            if (!activeChat || activeChat.messages.length > 0) {
+                state.activeChatId = null;
+            }
+
+            // اگر گزینه «خاموش کردن افکت» فعال بود، بدون انیمیشن مستقیم وارد چت شود
+            if (state.settings.disableEffects) {
+                switchView('chat');
+                revealEmptyChatElementsInstant();
+                return;
+            }
+
+            state.isStarAnimating = true;
+
+            const navStarBtn = document.getElementById('nav-ai');
+            const navStarIconWrap = document.getElementById('navStarIconWrap');
+            const heroStarTarget = document.getElementById('heroStarTarget');
+            const heroPromptText = document.getElementById('heroPromptText');
+            const quickPrompts = document.getElementById('quickPrompts');
+
+            heroStarTarget.style.opacity = '0';
+            heroPromptText.classList.remove('is-visible');
+            quickPrompts.classList.add('opacity-0', 'translate-y-3');
+
+            const startRect = navStarBtn.getBoundingClientRect();
+            const startX = startRect.left + startRect.width / 2;
+            const startY = startRect.top + startRect.height / 2;
+
+            spawnRipple(startX, startY);
+            spawnSparkParticles(startX, startY);
+
+            switchView('chat');
+
+            requestAnimationFrame(() => {
+                const targetRect = heroStarTarget.getBoundingClientRect();
+                const endX = targetRect.left + targetRect.width / 2;
+                const endY = targetRect.top + targetRect.height / 2;
+
+                navStarIconWrap.style.opacity = '0.2';
+
+                const flyingEl = document.createElement('div');
+                flyingEl.className = 'flying-star-overlay';
+                flyingEl.style.left = `${startX}px`;
+                flyingEl.style.top = `${startY}px`;
+                flyingEl.style.transform = 'translate(-50%, -50%) scale(0.85)';
+                flyingEl.innerHTML = `
+                    <div class="hero-star-badge" style="width:56px;height:56px;">
+                        <svg class="w-7 h-7 text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.95)]" viewBox="0 0 36 36" fill="none">
+                            <path d="M16 4C16 11.2 11.2 16 4 16C11.2 16 16 20.8 16 28C16 20.8 20.8 16 28 16C20.8 16 16 11.2 16 4Z" fill="white"/>
+                            <path d="M27.5 6C27.5 8.3 25.8 10 23.5 10C25.8 10 27.5 11.7 27.5 14C27.5 11.7 29.2 10 31.5 10C29.2 10 27.5 8.3 27.5 6Z" fill="white"/>
+                        </svg>
+                    </div>
+                `;
+                document.body.appendChild(flyingEl);
+
+                const dx = endX - startX;
+                const dy = endY - startY;
+
+                const flight = flyingEl.animate([
+                    {
+                        transform: 'translate(-50%, -50%) translate3d(0px, 0px, 0) scale(0.75) rotate(0deg)',
+                        filter: 'brightness(1.25)'
+                    },
+                    {
+                        transform: `translate(-50%, -50%) translate3d(${dx * 0.45}px, ${dy * 0.62 - 22}px, 0) scale(1.24) rotate(165deg)`,
+                        filter: 'brightness(1.42)',
+                        offset: 0.58
+                    },
+                    {
+                        transform: `translate(-50%, -50%) translate3d(${dx}px, ${dy}px, 0) scale(1.0) rotate(360deg)`,
+                        filter: 'brightness(1)'
+                    }
+                ], {
+                    duration: 700,
+                    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                    fill: 'forwards'
+                });
+
+                flight.onfinish = () => {
+                    heroStarTarget.style.opacity = '1';
+                    flyingEl.remove();
+                    navStarIconWrap.style.opacity = '1';
+
+                    spawnSparkParticles(endX, endY, 6);
+
+                    requestAnimationFrame(() => {
+                        heroPromptText.classList.add('is-visible');
+                        quickPrompts.classList.remove('opacity-0', 'translate-y-3');
+                    });
+
+                    if (window.innerWidth >= 640) {
+                        setTimeout(() => document.getElementById('chatInput')?.focus(), 200);
+                    }
+
+                    state.isStarAnimating = false;
+                };
+            });
+        }
+
+        function revealEmptyChatElementsInstant() {
+            const heroStarTarget = document.getElementById('heroStarTarget');
+            const heroPromptText = document.getElementById('heroPromptText');
+            const quickPrompts = document.getElementById('quickPrompts');
+            heroStarTarget.style.opacity = '1';
+            heroPromptText.classList.add('is-visible');
+            quickPrompts.classList.remove('opacity-0', 'translate-y-3');
+        }
+
+        function startNewChatWithAnimation() {
+            state.activeChatId = null;
+            triggerStarToChat();
+        }
+
+        function spawnRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'star-ripple';
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            ripple.style.width = '64px';
+            ripple.style.height = '64px';
+            document.body.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 760);
+        }
+
+        function spawnSparkParticles(x, y, count = 8) {
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'spark-particle';
+                const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4);
+                const dist = 30 + Math.random() * 40;
+                p.style.left = `${x}px`;
+                p.style.top = `${y}px`;
+                p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+                p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 840);
+            }
+        }
+
+        /* -----------------------------------------------------------
+           منطق صفحه چت و نمایش پیام‌ها
+           ----------------------------------------------------------- */
+        function renderActiveChat() {
+            const emptyStage = document.getElementById('chatEmptyStage');
+            const messagesList = document.getElementById('chatMessagesList');
+
+            const chat = state.chats.find(c => c.id === state.activeChatId);
+
+            if (!chat || chat.messages.length === 0) {
+                emptyStage.classList.remove('hidden');
+                messagesList.classList.add('hidden');
+
+                if (!state.isStarAnimating) {
+                    revealEmptyChatElementsInstant();
+                }
+                return;
+            }
+
+            emptyStage.classList.add('hidden');
+            messagesList.classList.remove('hidden');
+
+            messagesList.innerHTML = chat.messages.map((msg, idx) => {
+                if (msg.role === 'user') {
+                    return `
+                        <div class="flex justify-start">
+                            <div class="msg-user max-w-[84%] rounded-3xl rounded-tr-lg px-4 py-3 text-sm text-white leading-relaxed break-words">
+                                ${escapeHtml(msg.text)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="flex justify-end">
+                            <div class="msg-ai max-w-[88%] rounded-3xl rounded-tl-lg px-4 py-3.5 text-sm leading-relaxed break-words">
+                                <div class="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-blue-900/10">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center">
+                                            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"/>
+                                            </svg>
+                                        </span>
+                                        <span class="font-brand text-[10px] font-bold text-blue-900 tracking-wider" dir="ltr">ACBAI</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onclick="copyMessageText(${idx})"
+                                        class="text-[11px] text-slate-500 hover:text-blue-700 transition-colors flex items-center gap-1 cursor-pointer"
+                                        title="کپی پاسخ"
+                                    >
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                        </svg>
+                                        <span>کپی</span>
+                                    </button>
+                                </div>
+                                <div class="space-y-1.5">${formatSimpleMarkdown(msg.text)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            if (state.isGenerating) {
+                messagesList.innerHTML += `
+                    <div class="flex justify-end" id="typingIndicator">
+                        <div class="msg-ai rounded-3xl rounded-tl-lg px-4 py-3 flex items-center gap-2">
+                            <span class="text-xs font-semibold text-blue-900">ACBAI در حال نوشتن</span>
+                            <div class="flex items-center gap-1 text-blue-600">
+                                <svg class="w-3 h-3 typing-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"/></svg>
+                                <svg class="w-3 h-3 typing-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"/></svg>
+                                <svg class="w-3 h-3 typing-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+
+        function sendQuickPrompt(text) {
+            const input = document.getElementById('chatInput');
+            input.value = text;
+            handleChatSubmit(new Event('submit'));
+        }
+
+        async function handleChatSubmit(event) {
+            event.preventDefault();
+            if (state.isGenerating) return;
+
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+
+            let chat = state.chats.find(c => c.id === state.activeChatId);
+            if (!chat) {
+                chat = {
+                    id: 'chat-' + Date.now(),
+                    title: text.length > 34 ? text.slice(0, 34) + '...' : text,
+                    category: detectCategory(text),
+                    updatedAt: 'هم‌اکنون',
+                    messages: []
+                };
+                state.chats.unshift(chat);
+                state.activeChatId = chat.id;
+            } else {
+                chat.updatedAt = 'هم‌اکنون';
+                state.chats = [chat, ...state.chats.filter(c => c.id !== chat.id)];
+            }
+
+            chat.messages.push({ role: 'user', text });
+            state.isGenerating = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            saveState();
+            renderActiveChat();
+
+            try {
+                const reply = await callGeminiWithBackoff(chat.messages);
+                chat.messages.push({ role: 'model', text: reply });
+            } catch (err) {
+                chat.messages.push({
+                    role: 'model',
+                    text: 'الان ارتباط با سرور برقرار نشد. لطفاً چند لحظه بعد دوباره امتحان کن.'
+                });
+            } finally {
+                state.isGenerating = false;
+                document.getElementById('sendBtn').disabled = false;
+                saveState();
+                renderActiveChat();
+            }
+        }
+
+        /* -----------------------------------------------------------
+           ارتباط با Gemini API همراه با Exponential Backoff
+           ----------------------------------------------------------- */
+        async function callGeminiWithBackoff(messages, maxRetries = 4) {
+            const systemInstructionText = state.settings.creativeMode
+                ? 'شما ACBAI هستید، یک دستیار هوش مصنوعی صمیمی، خوش‌برخورد و کاربردی فارسی‌زبان. پاسخ‌های ساده، روان و دوستانه به فارسی بدهید.'
+                : 'شما ACBAI هستید، یک دستیار هوش مصنوعی دقیق و خلاصه‌گو. پاسخ‌های کوتاه و مستقیم به فارسی ارائه دهید.';
+
+            const contents = messages.map(m => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.text }]
+            }));
+
+            const payload = {
+                contents,
+                systemInstruction: {
+                    parts: [{ text: systemInstructionText }]
+                }
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(GEMINI_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                    throw new Error('Empty response');
+                } catch (error) {
+                    if (attempt === maxRetries) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function detectCategory(text) {
+            if (/فیلم|غذا|شام|صبح|انرژی|ورزش|سفر|قهوه/i.test(text)) return 'روزمره';
+            if (/ایده|پیشنهاد|خلاق|هدیه/i.test(text)) return 'ایده';
+            if (/متن|پیام|تبریک|ایمیل|نامه|کپشن|بنویس/i.test(text)) return 'نوشتار';
+            return 'عمومی';
+        }
+
+        /* -----------------------------------------------------------
+           منطق صفحه جستجو بین چت‌ها
+           ----------------------------------------------------------- */
+        function setSearchFilter(filter) {
+            state.searchFilter = filter;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                const isSelected = btn.dataset.filter === filter;
+                if (isSelected) {
+                    btn.className = 'filter-chip is-active px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer bg-white text-blue-950 shadow-sm';
+                } else {
+                    btn.className = 'filter-chip px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer glass-card text-blue-50 hover:bg-white/25';
+                }
+            });
+            renderSearchResults();
+        }
+
+        function clearSearchInput() {
+            const input = document.getElementById('searchChatInput');
+            input.value = '';
+            input.focus();
+            renderSearchResults();
+        }
+
+        function renderSearchResults() {
+            const query = (document.getElementById('searchChatInput')?.value || '').trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const listEl = document.getElementById('searchResultsList');
+            const countBadge = document.getElementById('searchCountBadge');
+
+            clearBtn.classList.toggle('hidden', query.length === 0);
+
+            const filtered = state.chats.filter(chat => {
+                const matchesFilter = state.searchFilter === 'all' || chat.category === state.searchFilter;
+                if (!matchesFilter) return false;
+                if (!query) return true;
+
+                const q = query.toLowerCase();
+                const inTitle = chat.title.toLowerCase().includes(q);
+                const inMessages = chat.messages.some(m => m.text.toLowerCase().includes(q));
+                return inTitle || inMessages;
+            });
+
+            countBadge.textContent = `${toPersianDigits(filtered.length)} گفتگو`;
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="glass-card rounded-3xl p-8 text-center mt-4">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-white/15 flex items-center justify-center mb-3">
+                            <svg class="w-7 h-7 text-blue-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <circle cx="11" cy="11" r="7"/>
+                                <path d="M20 20l-3.8-3.8"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-bold text-white">گفتگویی پیدا نشد</p>
+                        <p class="text-xs text-blue-100/75 mt-1">عبارت دیگری جستجو کنید یا یک گفتگوی تازه شروع کنید.</p>
+                        <button type="button" onclick="triggerStarToChat()" class="mt-4 glass-card-light text-blue-950 rounded-full px-4 py-2 text-xs font-bold cursor-pointer">
+                            شروع گفتگوی جدید
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(chat => {
+                const lastMsg = chat.messages[chat.messages.length - 1]?.text || 'بدون پیام';
+                const highlightedTitle = highlightText(chat.title, query);
+                const highlightedSnippet = highlightText(
+                    lastMsg.length > 90 ? lastMsg.slice(0, 90) + '...' : lastMsg,
+                    query
+                );
+
+                return `
+                    <div
+                        onclick="openChatById('${chat.id}')"
+                        class="glass-card-light hover:brightness-105 active:scale-[0.985] transition-all rounded-3xl p-4 text-slate-900 cursor-pointer"
+                    >
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center shrink-0 shadow-sm">
+                                    <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"/>
+                                    </svg>
+                                </span>
+                                <h3 class="text-sm font-bold text-slate-900 truncate">${highlightedTitle}</h3>
+                            </div>
+                            <span class="text-[10px] font-semibold text-blue-800 bg-blue-600/10 px-2.5 py-1 rounded-full shrink-0">
+                                ${escapeHtml(chat.category)}
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-slate-700 mt-2.5 leading-relaxed">
+                            ${highlightedSnippet}
+                        </p>
+
+                        <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-900/10 text-[11px] text-slate-500">
+                            <span>${escapeHtml(chat.updatedAt)}</span>
+                            <div class="flex items-center gap-3">
+                                <span>${toPersianDigits(chat.messages.length)} پیام</span>
+                                <button
+                                    type="button"
+                                    onclick="deleteChatById(event, '${chat.id}')"
+                                    class="text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
+                                    aria-label="حذف گفتگو"
+                                >
+                                    حذف
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openChatById(chatId) {
+            state.activeChatId = chatId;
+            switchView('chat');
+        }
+
+        function deleteChatById(event, chatId) {
+            event.stopPropagation();
+            state.chats = state.chats.filter(c => c.id !== chatId);
+            if (state.activeChatId === chatId) {
+                state.activeChatId = null;
+            }
+            saveState();
+            renderSearchResults();
+            updateAccountStats();
+            showToast('گفتگو حذف شد');
+        }
+
+        /* -----------------------------------------------------------
+           منطق صفحه حساب کاربری و تنظیمات
+           ----------------------------------------------------------- */
+        function updateAccountStats() {
+            document.getElementById('profileDisplayName').textContent = state.profileName;
+            document.getElementById('statChatsCount').textContent = toPersianDigits(state.chats.length);
+            const totalMsgs = state.chats.reduce((acc, c) => acc + c.messages.length, 0);
+            document.getElementById('statMessagesCount').textContent = toPersianDigits(totalMsgs);
+
+            syncToggleUI('toggleDisableEffects', state.settings.disableEffects);
+            syncToggleUI('toggleCreativeMode', state.settings.creativeMode);
+        }
+
+        function toggleSetting(key) {
+            state.settings[key] = !state.settings[key];
+            if (key === 'disableEffects') {
+                applyEffectsPreference();
+            }
+            saveState();
+            updateAccountStats();
+            showToast('تنظیمات ذخیره شد');
+        }
+
+        function syncToggleUI(elId, isOn) {
+            const btn = document.getElementById(elId);
+            if (!btn) return;
+            const knob = btn.querySelector('span');
+            btn.setAttribute('aria-pressed', String(isOn));
+            if (isOn) {
+                btn.classList.remove('bg-white/25');
+                btn.classList.add('bg-sky-400');
+                knob.classList.remove('translate-x-0');
+                knob.classList.add('-translate-x-5');
+            } else {
+                btn.classList.remove('bg-sky-400');
+                btn.classList.add('bg-white/25');
+                knob.classList.remove('-translate-x-5');
+                knob.classList.add('translate-x-0');
+            }
+        }
+
+        /* -----------------------------------------------------------
+           مودال شیشه‌ای و اعلان‌ها (بدون alert/confirm)
+           ----------------------------------------------------------- */
+        let modalConfirmHandler = null;
+
+        function openEditNameModal() {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = 'ویرایش نام نمایشی';
+            document.getElementById('modalDesc').textContent = 'نام جدید خود را وارد کنید:';
+            const inputWrap = document.getElementById('modalInputWrap');
+            const input = document.getElementById('modalInput');
+            inputWrap.classList.remove('hidden');
+            input.value = state.profileName;
+
+            modalConfirmHandler = () => {
+                const newName = input.value.trim();
+                if (newName) {
+                    state.profileName = newName;
+                    saveState();
+                    updateAccountStats();
+                    showToast('نام کاربری ذخیره شد');
+                }
+                closeModal();
+            };
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function openClearHistoryModal() {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = 'پاکسازی سابقه گفتگوها';
+            document.getElementById('modalDesc').textContent = 'مطمئن هستید می‌خواهید تمام گفتگوهای ذخیره‌شده پاک شوند؟';
+            document.getElementById('modalInputWrap').classList.add('hidden');
+
+            modalConfirmHandler = () => {
+                state.chats = [];
+                state.activeChatId = null;
+                saveState();
+                updateAccountStats();
+                renderSearchResults();
+                closeModal();
+                showToast('سابقه گفتگوها پاک شد');
+            };
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modalConfirmHandler = null;
+        }
+
+        document.getElementById('modalConfirmBtn').addEventListener('click', () => {
+            if (typeof modalConfirmHandler === 'function') modalConfirmHandler();
+        });
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const container = document.getElementById('toastContainer');
+            const label = document.getElementById('toastMessage');
+            label.textContent = msg;
+            container.classList.remove('opacity-0', '-translate-y-3');
+            container.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                container.classList.add('opacity-0', '-translate-y-3');
+                container.classList.remove('opacity-100', 'translate-y-0');
+            }, 2200);
+        }
+
+        /* -----------------------------------------------------------
+           توابع کمکی: کپی امن، فرمت‌دهی متن و اعداد فارسی
+           ----------------------------------------------------------- */
+        function copyMessageText(msgIndex) {
+            const chat = state.chats.find(c => c.id === state.activeChatId);
+            if (!chat || !chat.messages[msgIndex]) return;
+
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = chat.messages[msgIndex].text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('پاسخ کپی شد');
+            } catch (e) {
+                showToast('امکان کپی وجود نداشت');
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatSimpleMarkdown(text) {
+            let safe = escapeHtml(text);
+            safe = safe.replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre dir="ltr" class="bg-slate-900 text-sky-200 text-xs rounded-2xl p-3 overflow-x-auto my-2 font-mono">$1</pre>');
+            safe = safe.replace(/`([^`]+)`/g, '<code dir="ltr" class="bg-blue-900/10 text-blue-900 px-1.5 py-0.5 rounded-md text-xs font-mono">$1</code>');
+            safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-slate-950">$1</strong>');
+            safe = safe.replace(/\n/g, '<br>');
+            return safe;
+        }
+
+        function highlightText(text, query) {
+            const safe = escapeHtml(text);
+            if (!query) return safe;
+            const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedQuery})`, 'gi');
+            return safe.replace(regex, '<mark class="bg-blue-500/25 text-blue-950 rounded px-0.5 font-bold">$1</mark>');
+        }
+
+        function toPersianDigits(num) {
+            return String(num).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        }
+
+        /* -----------------------------------------------------------
+           راه‌اندازی اولیه مینی‌اپ
+           ----------------------------------------------------------- */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            updateAccountStats();
+            renderSearchResults();
+            switchView('welcome');
+        });
+    </script>
+</body>
+</html>
